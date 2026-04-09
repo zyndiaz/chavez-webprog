@@ -4,9 +4,6 @@ import hm_img2 from '../assets/hm_img2.png';
 import hm_img3 from '../assets/hm_img3.png';
 import hm_img4 from '../assets/hm_img4.png';
 
-
-
-
 const HomePage = () => {
     return (
         <div className='flex w-full flex-col gap-6'>

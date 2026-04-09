@@ -1,18 +1,21 @@
-import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 
-
+import './App.css';
 import Layout from './components/Layout';
+import AboutPage from './pages/AboutPage';
+import ArticleListPage from './pages/ArticleListPage';
 import ArticlePage from './pages/ArticlePage';
 import HomePage from './pages/HomePage';
-import AboutPage from './pages/AboutPage';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import NotFoundPage from './pages/NotFoundPage';
 
 
-const routes = [
-  {
+const routes = [{
     path: '/',
     element: <Layout />,
-    children: [
-      {
+    //Error element
+    errorElement: <NotFoundPage />,
+    children: [{
+      // Path declaration
         path: '',
         element: <HomePage />,
       },
@@ -22,8 +25,12 @@ const routes = [
       },
       {
         path: 'articles',
-        element: <ArticlePage />,
+        element: <ArticleListPage />,
       },
+      {
+        path: '/article/:name', //-->articles/learn-react
+        element: <ArticlePage />
+      }
     ],
   },
 ];
