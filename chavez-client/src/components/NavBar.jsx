@@ -1,13 +1,11 @@
 import { NavLink } from 'react-router-dom';
 import logo from '../assets/logo.png';
 
-
 const links = [
   { label: 'Home', to: '/' },
   { label: 'About', to: '/about' },
   { label: 'Articles', to: '/articles' },
 ];
-
 
 const navLinkClassName = ({ isActive }) =>
   [
@@ -16,7 +14,6 @@ const navLinkClassName = ({ isActive }) =>
       ? 'bg-white text-black'
       : 'text-white/70 hover:text-white hover:bg-white/10',
   ].join(' ');
-
 
 const NavBar = () => {
   return (
@@ -32,8 +29,7 @@ const NavBar = () => {
           </div>
         </NavLink>
 
-
-        <nav className="hidden items-center gap-1 md:flex">
+        <nav className="flex items-center gap-1">
           {links.map((link) => (
             <NavLink
               key={link.to}
@@ -45,10 +41,25 @@ const NavBar = () => {
             </NavLink>
           ))}
         </nav>
+
+        {/* Auth buttons */}
+        <div className="flex items-center gap-3">
+          <NavLink
+            to="/auth/signin"
+            className="rounded-full px-5 py-2 text-sm font-medium text-white/70 transition-all duration-200 hover:text-white hover:bg-white/10"
+          >
+            Sign In
+          </NavLink>
+          <NavLink
+            to="/auth/signup"
+            className="rounded-full bg-white px-5 py-2 text-sm font-medium text-black transition-all duration-200 hover:bg-white/90"
+          >
+            Sign Up
+          </NavLink>
+        </div>
       </div>
     </header>
   );
 };
-
 
 export default NavBar;
