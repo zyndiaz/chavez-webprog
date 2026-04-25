@@ -42,18 +42,11 @@ const NavBar = () => {
           ))}
         </nav>
 
-        {/* Auth buttons */}
         <div className="flex items-center gap-3">
-          <NavLink
-            to="/auth/signin"
-            className="rounded-full px-5 py-2 text-sm font-medium text-white/70 transition-all duration-200 hover:text-white hover:bg-white/10"
-          >
+          <NavLink to="/auth/signin" className="rounded-full px-5 py-2 text-sm font-medium text-white/70 transition-all duration-200 hover:text-white hover:bg-white/10">
             Sign In
           </NavLink>
-          <NavLink
-            to="/auth/signup"
-            className="rounded-full bg-white px-5 py-2 text-sm font-medium text-black transition-all duration-200 hover:bg-white/90"
-          >
+          <NavLink to="/auth/signup" className="rounded-full bg-white px-5 py-2 text-sm font-medium text-black transition-all duration-200 hover:bg-white/90">
             Sign Up
           </NavLink>
         </div>

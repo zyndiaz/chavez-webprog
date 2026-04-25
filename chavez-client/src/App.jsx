@@ -12,13 +12,17 @@ import SignUpPage from './pages/AuthPages/SignUpPage';
 
 import NotFoundPage from './pages/NotFoundPage';
 
+import DashLayout from './layouts/DashLayout';
+import DashboardPage from './pages/DashboardPages/DashboardPage';
+import ReportsPage from './pages/DashboardPages/ReportsPage';
+import UsersPage from './pages/DashboardPages/UsersPage';
 
 const routes = [{
     path: '/',
     element: <Layout />,
     errorElement: <NotFoundPage />,
     children: [{
-        path: '',
+        index: true,
         element: <HomePage />,
       },
       {
@@ -30,13 +34,13 @@ const routes = [{
         element: <ArticleListPage />,
       },
       {
-        path: '/article/:name', //-->articles/learn-react
+        path: '/article/:name',
         element: <ArticlePage />
       }
     ],
   },
   {
-    path: "auth/",
+    path: "auth",
     element: <AuthLayout />,
     errorElement: <NotFoundPage />,
     children: [
@@ -50,19 +54,35 @@ const routes = [{
       }
     ],
   },
+  {
+    path: "dashboard",
+    element: <DashLayout />,
+    errorElement: <NotFoundPage />,
+    children: [
+      {
+        index: true,
+        element: <DashboardPage />,
+      },
+      {
+        path: "reports",
+        element: <ReportsPage />,
+      },
+      {
+        path: "users",
+        element: <UsersPage />,
+      }
+    ],
+  },
 ];
 
-
 const router = createBrowserRouter(routes);
-
 
 function App() {
   return (
     <>
-    <RouterProvider router={router} />
+      <RouterProvider router={router} />
     </>
   );
 }
-
 
 export default App;
