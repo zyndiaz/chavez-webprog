@@ -1,7 +1,45 @@
-import React from 'react';
-import { Typography, Paper, Box, Stack, Card, CardContent } from '@mui/material';
-import { BarChart } from '@mui/x-charts/BarChart';
-import { PieChart } from '@mui/x-charts/PieChart';
+import { useRef } from 'react';
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Card from "@mui/material/Card";
+import CardContent from "@mui/material/CardContent";
+import Stack from "@mui/material/Stack";
+import Typography from "@mui/material/Typography";
+import { BarChart } from "@mui/x-charts/BarChart";
+import { Gauge } from "@mui/x-charts/Gauge";
+import { PieChart } from "@mui/x-charts/PieChart";
+import { DataGrid } from "@mui/x-data-grid";
+
+const columns = [
+  { field: 'id', headerName: 'ID', width: 90 },
+  {
+    field: 'firstName',
+    headerName: 'First name',
+    width: 150,
+    editable: true,
+  },
+  {
+    field: 'lastName',
+    headerName: 'Last name',
+    width: 150,
+    editable: true,
+  },
+  {
+    field: 'age',
+    headerName: 'Age',
+    type: 'number',
+    width: 110,
+    editable: true,
+  },
+  {
+    field: 'fullName',
+    headerName: 'Full name',
+    description: 'This column has a value getter and is not sortable.',
+    sortable: false,
+    width: 160,
+    valueGetter: (value, row) => `${row.firstName || ''} ${row.lastName || ''}`,
+  },
+];
 
 const rows = [
   { id: 1, lastName: 'Snow', firstName: 'Jon', age: 14 },
@@ -12,92 +50,263 @@ const rows = [
   { id: 6, lastName: 'Melisandre', firstName: null, age: 150 },
   { id: 7, lastName: 'Clifford', firstName: 'Ferrara', age: 44 },
   { id: 8, lastName: 'Frances', firstName: 'Rossini', age: 36 },
-  { id: 9, lastName: 'Roxie', firstName: 'Harvey', age: 65 },
+  { id: 9, lastName: 'Roxie', firstName: 'Harvey', age: 65 }
 ];
 
-function ReportsPage() {
+const ReportsPage = () => {
+  const printRef = useRef(null);
+
+  const handlePrint = () => {
+    const printContent = printRef.current;
+
+    if (!printContent) {
+      return;
+    }
+
+    const printWindow = window.open('', '_blank', 'width=1200,height=900');
+
+    if (!printWindow) {
+      return;
+    }
+
+    const headMarkup = Array.from(
+      document.querySelectorAll('style, link[rel="stylesheet"]')
+    )
+      .map((node) => node.outerHTML)
+      .join('');
+
+    const exportedAt = new Intl.DateTimeFormat('en-US', {
+      dateStyle: 'long',
+      timeStyle: 'short',
+    }).format(new Date());
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8"/>
+        <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+        <title>Print Report</title>
+        ${headMarkup}
+        <style>
+          @page {
+            size: A4;
+            margin: 16mm;
+            box-sizing: border-box;
+          }
+          body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #fff;
+            color: #1f2937;
+          }
+          .report-shell {
+            padding: 28px;
+          }
+          .report-header {
+            margin-bottom: 24px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid #d1d5db;
+          }
+          .report-header h1 {
+            margin: 0 0 6px;
+            font-size: 28px;
+            font-weight: 700;
+          }
+          .report-header p {
+            margin: 0;
+            font-size: 14px;
+            color: #6b7280;
+            line-height: 1.5;
+          }
+          .report-content .MuiCard-root {
+            box-shadow: none !important;
+            border: 1px solid #e5e7eb;
+            break-inside: avoid;
+            page-break-inside: avoid;
+          }
+          .report-content .MuiCardContent-root {
+            padding: 20px;
+          }
+          .report-content svg {
+            max-width: 100%;
+          }
+        </style>
+      </head>
+      <body>
+        <main class="report-shell">
+          <header class="report-header">
+            <h1>Reports Summary</h1>
+            <p>Analytics overview for generated reports, category breakdown, and completion performance.</p>
+            <p>Prepared on ${exportedAt}</p>
+          </header>
+          <section class="report-content">
+            ${printContent.outerHTML}
+          </section>
+        </main>
+      </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+  };
+
   return (
     <Box>
-      <Typography variant="h4" gutterBottom sx={{ color: '#333', fontWeight: 'bold' }}>
-        Reports
-      </Typography>
-
-      {/* Summary */}
-      <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} sx={{ mb: 4 }}>
-        <Card sx={{ backgroundColor: '#1a1a1a', color: 'white', borderRadius: 2, flex: 1 }}>
-          <CardContent>
-            <Typography variant="h6" sx={{ color: '#cccccc' }}>Total Users</Typography>
-            <Typography variant="h4" sx={{ color: 'white', fontWeight: 'bold' }}>{rows.length}</Typography>
-          </CardContent>
-        </Card>
-        <Card sx={{ backgroundColor: '#2a2a2a', color: 'white', borderRadius: 2, flex: 1 }}>
-          <CardContent>
-            <Typography variant="h6" sx={{ color: '#cccccc' }}>Average Age</Typography>
-            <Typography variant="h4" sx={{ color: 'white', fontWeight: 'bold' }}>
-              {(rows.reduce((sum, row) => sum + (row.age || 0), 0) /
-                rows.filter(row => row.age !== null).length
-              ).toFixed(1)}
-            </Typography>
-          </CardContent>
-        </Card>
-      </Stack>
-    
-      {/* Gauges - Commented out but kept for reference */}
-      {/*
-      <Stack direction={{ xs: 'column', md: 'row' }} spacing={3} sx={{ mb: 4 }}>
-        <Gauge width={100} height={100} value={50} />
-        <Gauge width={100} height={100} value={50} valueMin={10} valueMax={60} />
-      </Stack>
-      */}
-
-      {/* Charts */}
-      <Stack direction={{ xs: 'column', md: 'row' }} spacing={3} sx={{ mb: 4 }}>
-        <Box sx={{ backgroundColor: 'white', padding: 2, borderRadius: 2, boxShadow: 1, flex: 1 }}>
-          <Typography variant="h6" sx={{ mb: 2, color: '#333' }}>Quarterly Sales</Typography>
-          <BarChart
-            series={[
-              { data: [35, 44, 24, 34], label: 'Series 1', color: '#1a1a1a' },
-              { data: [51, 6, 49, 30], label: 'Series 2', color: '#666666' },
-            ]}
-            height={290}
-            xAxis={[{ data: ['Q1', 'Q2', 'Q3', 'Q4'], scaleType: 'band', label: 'Quarters' }]}
-          />
+      <Stack
+        direction={{ xs: "column", md: "row" }}
+        justifyContent="space-between"
+        alignItems={{ xs: "flex-start", md: "center" }}
+        spacing={2}
+        sx={{ mb: 4 }}
+      >
+        <Box>
+          <Typography variant="h4" gutterBottom>
+            Reports
+          </Typography>
+          <Typography variant="body1" color="text.secondary">
+            Report analytics overview showing generated reports,
+            category breakdown, and current completion performance.
+          </Typography>
         </Box>
-        
-        <Box sx={{ backgroundColor: 'white', padding: 2, borderRadius: 2, boxShadow: 1, flex: 1 }}>
-          <Typography variant="h6" sx={{ mb: 2, color: '#333' }}>Distribution</Typography>
-          <PieChart
-            series={[
-              {
-                data: [
-                  { id: 0, value: 10, label: 'Series A', color: '#1a1a1a' },
-                  { id: 1, value: 15, label: 'Series B', color: '#555555' },
-                  { id: 2, value: 20, label: 'Series C', color: '#999999' },
-                ],
-                arcLabel: (item) => `${item.value}`,
-                arcLabelMinAngle: 15,
-                valueFormatter: (item) => `${item.value}`,
-              },
-            ]}
-            width={400}
-            height={250}
-            slotProps={{
-              legend: {
-                hidden: true,
-              },
-              pieArcLabel: {
-                style: {
-                  fontSize: '14px',
-                  fontWeight: 'bold',
-                  fill: 'white',
-                },
-              },
+        <Stack direction="row" spacing={1.5} flexWrap="wrap" useFlexGap>
+          <Button 
+            variant="contained" 
+            sx={{ 
+              bgcolor: '#000000', 
+              color: '#ffffff',
+              '&:hover': { bgcolor: '#333333' }
             }}
-          />
-        </Box>
+          >
+            Generate
+          </Button>
+          <Button 
+            variant="outlined" 
+            onClick={handlePrint}
+            sx={{ 
+              borderColor: '#000000', 
+              color: '#000000',
+              '&:hover': { borderColor: '#333333', color: '#333333' }
+            }}
+          >
+            Export
+          </Button>
+          <Button 
+            variant="outlined"
+            sx={{ 
+              borderColor: '#000000', 
+              color: '#000000',
+              '&:hover': { borderColor: '#333333', color: '#333333' }
+            }}
+          >
+            Filter
+          </Button>
+        </Stack>
+      </Stack>
+
+      <Stack ref={printRef} spacing={3}>
+        <Card>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>
+              Monthly Report Output
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+              This chart compares how many reports were generated and how
+              many were completed across the last four months.
+            </Typography>
+            <BarChart
+              series={[
+                { data: [18, 24, 20, 27], label: "Generated", color: "#1a1a1a" },
+                { data: [12, 19, 17, 23], label: "Completed", color: "#666666" }
+              ]}
+              height={300}
+              xAxis={[{
+                data: ["January", "February", "March", "April"],
+                scaleType: "band",
+                label: "Months",
+              }]}
+            />
+          </CardContent>
+        </Card>
+
+        <Stack direction={{ xs: "column", lg: "row" }} spacing={3}>
+          <Card sx={{ flex: 1 }}>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                Report Category Share
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                This chart shows the distribution of report requests by
+                category for the current reporting period.
+              </Typography>
+              <Box sx={{ display: "flex", justifyContent: "center" }}>
+                <PieChart
+                  series={[{
+                    data: [
+                      { id: 0, value: 14, label: "Sales", color: "#1a1a1a" },
+                      { id: 1, value: 10, label: "Users", color: "#555555" },
+                      { id: 2, value: 8, label: "Inventory", color: "#999999" },
+                      { id: 3, value: 6, label: "Finance", color: "#cccccc" },
+                    ]
+                  }]}
+                  width={280}
+                  height={220}
+                />
+              </Box>
+            </CardContent>
+          </Card>
+
+          <Card sx={{ flex: 1 }}>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                Completion Rate
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                Current completion rate across all report categories.
+              </Typography>
+              <Box
+                sx={{
+                  minHeight: 220,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center"
+                }}
+              >
+                <Gauge 
+                  width={180} 
+                  height={180} 
+                  value={78}
+                  sx={{
+                    '& .MuiGauge-valueArc': { fill: '#1a1a1a' },
+                    '& .MuiGauge-referenceArc': { fill: '#e0e0e0' }
+                  }}
+                />
+              </Box>
+            </CardContent>
+          </Card>
+        </Stack>
+
+        <Card>
+          <CardContent>
+            <DataGrid
+              rows={rows}
+              columns={columns}
+              experimentalFeatures={{ newEditingApi: true }}
+              initialState={{
+                pagination: {
+                  paginationModel: { pageSize: 5 }
+                }
+              }}
+              pageSizeOptions={[5]}
+              checkboxSelection
+              disableRowSelectionOnClick
+            />
+          </CardContent>
+        </Card>
       </Stack>
     </Box>
   );
-}
+};
 
 export default ReportsPage;

@@ -20,7 +20,7 @@ import UsersPage from './pages/DashboardPages/UsersPage';
 const routes = [{
     path: '/',
     element: <Layout />,
-    errorElement: <NotFoundPage />,
+    //errorElement: <NotFoundPage />,
     children: [{
         index: true,
         element: <HomePage />,
@@ -55,9 +55,9 @@ const routes = [{
     ],
   },
   {
-    path: "dashboard",
+    path: "/dashboard",
     element: <DashLayout />,
-    errorElement: <NotFoundPage />,
+    //errorElement: <NotFoundPage />,
     children: [
       {
         index: true,
