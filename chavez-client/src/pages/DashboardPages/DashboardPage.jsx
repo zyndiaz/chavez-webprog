@@ -67,6 +67,7 @@ const rows = [
 
 
 function DashboardPage() {
+    
   return (
     <>
       <Typography variant="h4" gutterBottom sx={{ color: '#333', fontWeight: 'bold' }}>
@@ -183,9 +184,9 @@ function DashboardPage() {
           />
           <Marker position={[14.604253, 120.994314]}>
             <Popup>
-              <strong>National University-Manila</strong>
+              National University-Manila
               <br />
-              <em>551 F Jhocson St, Sampaloc, Manila, 1008 Metro Manila</em>
+              <p><i>551 F Jhocson St, Sampaloc, Manila, 1008 Metro Manila</i></p>
             </Popup>
           </Marker>
         </MapContainer>

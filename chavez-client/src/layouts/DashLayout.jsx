@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { styled, useTheme, alpha } from "@mui/material/styles";
 import Box from "@mui/material/Box";
@@ -11,8 +11,6 @@ import Typography from "@mui/material/Typography";
 import Divider from "@mui/material/Divider";
 import IconButton from "@mui/material/IconButton";
 import MenuIcon from "@mui/icons-material/Menu";
-import SearchIcon from "@mui/icons-material/Search";
-import InputBase from "@mui/material/InputBase";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import ListItem from "@mui/material/ListItem";
@@ -22,12 +20,16 @@ import ListItemText from "@mui/material/ListItemText";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import PeopleIcon from "@mui/icons-material/People";
 import AssessmentIcon from "@mui/icons-material/Assessment";
+import ArticleIcon from "@mui/icons-material/Article";
 import Button from "@mui/material/Button";
 import MenuOpenIcon from "@mui/icons-material/MenuOpen";
+import InputBase from "@mui/material/InputBase";
+import SearchIcon from "@mui/icons-material/Search";
+import { getCurrentUser, isAdmin, handleLogout } from "../pages/AuthPages/Login";
 
 const drawerWidth = 200;
 
-const dashboardNavItems = [
+const baseNavItems = [
   {
     label: "Dashboard",
     title: "Dashboard",
@@ -40,13 +42,61 @@ const dashboardNavItems = [
     to: "/dashboard/reports",
     icon: AssessmentIcon,
   },
+];
+
+const adminNavItems = [
   {
     label: "Users",
     title: "Users",
     to: "/dashboard/users",
     icon: PeopleIcon,
   },
+  {
+    label: "Articles",
+    title: "Articles",
+    to: "/dashboard/articles",
+    icon: ArticleIcon,
+  },
 ];
+
+const Search = styled("div")(({ theme }) => ({
+  position: "relative",
+  borderRadius: theme.shape.borderRadius,
+  backgroundColor: alpha(theme.palette.common.white, 0.15),
+  "&:hover": {
+    backgroundColor: alpha(theme.palette.common.white, 0.25),
+  },
+  marginRight: theme.spacing(2),
+  marginLeft: 0,
+  width: "100%",
+  [theme.breakpoints.up("sm")]: {
+    marginLeft: theme.spacing(3),
+    width: "auto",
+  },
+}));
+
+const SearchIconWrapper = styled("div")(({ theme }) => ({
+  padding: theme.spacing(0, 2),
+  height: "100%",
+  position: "absolute",
+  pointerEvents: "none",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+}));
+
+const StyledInputBase = styled(InputBase)(({ theme }) => ({
+  color: "inherit",
+  "& .MuiInputBase-input": {
+    padding: theme.spacing(1, 1, 1, 0),
+    paddingLeft: `calc(1em + ${theme.spacing(4)})`,
+    transition: theme.transitions.create("width"),
+    width: "100%",
+    [theme.breakpoints.up("md")]: {
+      width: "20ch",
+    },
+  },
+}));
 
 const openedMixin = (theme) => ({
   width: drawerWidth,
@@ -81,7 +131,7 @@ const AppBar = styled(MuiAppBar, {
   shouldForwardProp: (prop) => prop !== "open",
 })(({ theme, open }) => ({
   zIndex: theme.zIndex.drawer + 1,
-  backgroundColor: "#000000", 
+  backgroundColor: "#000000",
   transition: theme.transitions.create(["width", "margin"], {
     easing: theme.transitions.easing.sharp,
     duration: theme.transitions.duration.leavingScreen,
@@ -113,58 +163,37 @@ const Drawer = styled(MuiDrawer, {
   }),
 }));
 
-const SearchIconWrapper = styled("div")(({ theme }) => ({
-  padding: theme.spacing(0, 2),
-  height: "100%",
-  position: "absolute",
-  pointerEvents: "none",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-}));
-
-const Search = styled("div")(({ theme }) => ({
-  position: "relative",
-  borderRadius: theme.shape.borderRadius,
-  backgroundColor: alpha(theme.palette.common.white, 0.15),
-  "&:hover": {
-    backgroundColor: alpha(theme.palette.common.white, 0.25),
-  },
-  marginRight: theme.spacing(2),
-  marginLeft: 0,
-  width: "100%",
-  [theme.breakpoints.up("sm")]: {
-    marginLeft: theme.spacing(3),
-    width: "auto",
-  },
-}));
-
-const StyledInputBase = styled(InputBase)(({ theme }) => ({
-  color: "inherit",
-  "& .MuiInputBase-input": {
-    padding: theme.spacing(1, 1, 1, 0),
-    paddingLeft: `calc(1em + ${theme.spacing(4)})`,
-    transition: theme.transitions.create("width"),
-    width: "100%",
-    [theme.breakpoints.up("md")]: {
-      width: "20ch",
-    },
-  },
-}));
-
-const getPageTitle = (pathname) => {
-  const exactMatch = dashboardNavItems.find(({ to }) => to === pathname);
-  if (exactMatch) return exactMatch.title;
-  if (pathname === "/dashboard") return "Dashboard";
-  return "Welcome";
-};
-
 const DashLayout = () => {
   const theme = useTheme();
   const [open, setOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [userName, setUserName] = useState("User");
   const location = useLocation();
-  const pageTitle = getPageTitle(location.pathname);
   const navigate = useNavigate();
+  
+  const admin = isAdmin();
+  
+  const dashboardNavItems = admin ? [...baseNavItems, ...adminNavItems] : baseNavItems;
+
+  useEffect(() => {
+    const loadUserData = () => {
+      const user = getCurrentUser();
+      console.log("Current user data:", user);
+      
+      if (user && user.firstName) {
+        setUserName(user.firstName);
+      } else {
+        const firstName = localStorage.getItem('firstName');
+        if (firstName) {
+          setUserName(firstName);
+        } else {
+          setUserName("User");
+        }
+      }
+    };
+    
+    loadUserData();
+  }, [location]); 
 
   const handleDrawerOpen = () => {
     setOpen(true);
@@ -174,8 +203,14 @@ const DashLayout = () => {
     setOpen(false);
   };
 
-  const handleLogout = () => {
-    navigate("/");
+  const handleLogoutClick = () => {
+    handleLogout();
+    navigate("/auth/signin");
+  };
+
+  const handleSearch = (e) => {
+    setSearchQuery(e.target.value);
+    console.log("Searching for:", searchQuery);
   };
 
   return (
@@ -198,33 +233,40 @@ const DashLayout = () => {
             component="div"
             sx={{ flexGrow: 1, color: "white" }}
           >
-            {pageTitle}
+            Welcome, {userName}!
           </Typography>
+          
           <Search>
             <SearchIconWrapper>
               <SearchIcon />
             </SearchIconWrapper>
             <StyledInputBase
-              placeholder="Search..."
+              placeholder="Search…"
               inputProps={{ "aria-label": "search" }}
+              value={searchQuery}
+              onChange={handleSearch}
             />
           </Search>
-          <Button color="inherit" variant="outlined" onClick={handleLogout} sx={{ color: "white", borderColor: "white" }}>
+          
+          <Button 
+            color="inherit" 
+            variant="outlined" 
+            onClick={handleLogoutClick} 
+            sx={{ color: "white", borderColor: "white", ml: 2 }}
+          >
             Logout
           </Button>
         </Toolbar>
       </AppBar>
+      
       <Drawer variant="permanent" open={open}>
         <DrawerHeader>
           <IconButton onClick={handleDrawerClose}>
-            {theme.direction === "rtl" ? (
-              <ChevronRightIcon />
-            ) : (
-              <ChevronLeftIcon />
-            )}
+            {theme.direction === "rtl" ? <ChevronRightIcon /> : <ChevronLeftIcon />}
           </IconButton>
         </DrawerHeader>
         <Divider />
+                
         <List>
           {dashboardNavItems.map(({ label, to, icon: Icon }) => (
             <ListItem key={to} disablePadding sx={{ display: "block" }}>
@@ -239,29 +281,29 @@ const DashLayout = () => {
                   '&.Mui-selected': {
                     backgroundColor: alpha(theme.palette.primary.main, 0.2),
                   },
-                  '&.Mui-selected:hover': {
-                    backgroundColor: alpha(theme.palette.primary.main, 0.3),
-                  },
                 }}
               >
-                <ListItemIcon
-                  sx={{
-                    minWidth: 0,
-                    mr: open ? 3 : "auto",
-                    justifyContent: "center",
-                  }}
-                >
+                <ListItemIcon sx={{ minWidth: 0, mr: open ? 3 : "auto", justifyContent: "center" }}>
                   <Icon />
                 </ListItemIcon>
-                <ListItemText
-                  primary={label}
-                  sx={{ opacity: open ? 1 : 0 }}
-                />
+                <ListItemText primary={label} sx={{ opacity: open ? 1 : 0 }} />
               </ListItemButton>
             </ListItem>
           ))}
         </List>
+        
+        {open && !admin && (
+          <>
+            <Divider />
+            <Box sx={{ p: 2, mt: "auto" }}>
+              <Typography variant="caption" color="text.secondary" sx={{ display: "block", textAlign: "center" }}>
+                🔒 Users page restricted
+              </Typography>
+            </Box>
+          </>
+        )}
       </Drawer>
+      
       <Box 
         component="main" 
         sx={{ 

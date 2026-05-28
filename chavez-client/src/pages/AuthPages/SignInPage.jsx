@@ -1,11 +1,62 @@
-import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import Button from '../../components/Button';
+import { handleSignIn } from './Login';
 
 const inputClasses = 'w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-900 outline-none transition-all placeholder:text-zinc-400 focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900';
-
 const actionButtonClassName = 'w-full rounded-xl py-3 text-sm font-semibold tracking-wide';
 
 const SignInPage = () => {
+    const navigate = useNavigate();
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [rememberMe, setRememberMe] = useState(false);
+
+    // Load remembered email
+    useEffect(() => {
+        const remembered = localStorage.getItem('rememberedEmail');
+        if (remembered) {
+            setEmail(remembered);
+            setRememberMe(true);
+        }
+    }, []);
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        setError('');
+
+        // Call the Login.js function
+        const result = await handleSignIn(email, password);
+
+        if (result.success) {
+            if (rememberMe) {
+                localStorage.setItem('rememberedEmail', email);
+            } else {
+                localStorage.removeItem('rememberedEmail');
+            }
+            navigate('/dashboard');
+        } else {
+            setError(result.message);
+            
+            // If it's a viewer account, redirect to home after 2 seconds
+            if (result.isViewer || result.redirectToHome) {
+                setTimeout(() => {
+                    // Clear any stored data
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('firstName');
+                    localStorage.removeItem('type');
+                    localStorage.removeItem('email');
+                    navigate('/');
+                }, 2000);
+            }
+        }
+        
+        setLoading(false);
+    };
+
     return (
         <div className="flex min-h-full flex-col justify-center py-12 sm:px-6 lg:px-8">
             <div className="sm:mx-auto sm:w-full sm:max-w-md">
@@ -18,57 +69,56 @@ const SignInPage = () => {
                     </p>
                 </div>
 
-                <div className="mt-8 bg-white px-6 py-8 shadow-sm rounded-2xl sm:rounded-2xl sm:px-10">
-                    <form className="space-y-6">
+                <div className="mt-8 bg-white px-6 py-8 shadow-sm rounded-2xl">
+                    {error && (
+                        <div className="mb-4 rounded-lg bg-red-50 p-4 text-sm text-red-800">
+                            {error}
+                            {error.includes('Viewer') && (
+                                <div className="mt-2 text-xs text-red-600">
+                                    Redirecting you to the homepage...
+                                </div>
+                            )}
+                        </div>
+                    )}
+                    
+                    <form className="space-y-6" onSubmit={handleSubmit}>
                         <div>
-                            <label htmlFor="signin-email" className="block text-sm font-medium text-zinc-700">
+                            <label className="block text-sm font-medium text-zinc-700">
                                 Email Address
                             </label>
-                            <div className="mt-1">
-                                <input
-                                    id="signin-email"
-                                    name="email"
-                                    type="email"
-                                    autoComplete="email"
-                                    required
-                                    placeholder="you@example.com"
-                                    className={inputClasses}
-                                />
-                            </div>
+                            <input
+                                type="email"
+                                required
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                className={inputClasses}
+                            />
                         </div>
 
                         <div>
-                            <label htmlFor="signin-password" className="block text-sm font-medium text-zinc-700">
+                            <label className="block text-sm font-medium text-zinc-700">
                                 Password
                             </label>
-                            <div className="mt-1">
-                                <input
-                                    id="signin-password"
-                                    name="password"
-                                    type="password"
-                                    autoComplete="current-password"
-                                    required
-                                    placeholder="••••••••"
-                                    className={inputClasses}
-                                />
-                            </div>
-                            <p className="mt-2 text-xs text-zinc-500">
-                                Must be at least 8 characters with letters, numbers & symbols
-                            </p>
+                            <input
+                                type="password"
+                                required
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                className={inputClasses}
+                            />
                         </div>
 
                         <div className="flex items-center justify-between">
                             <label className="flex items-center gap-2 text-sm text-zinc-600">
                                 <input 
                                     type="checkbox" 
-                                    className="h-4 w-4 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900"
+                                    checked={rememberMe}
+                                    onChange={(e) => setRememberMe(e.target.checked)}
+                                    className="h-4 w-4 rounded"
                                 />
                                 <span>Remember me</span>
                             </label>
-                            <button 
-                                type="button" 
-                                className="text-sm font-medium text-zinc-700 transition hover:text-zinc-900"
-                            >
+                            <button type="button" className="text-sm font-medium text-zinc-700">
                                 Forgot password?
                             </button>
                         </div>
@@ -77,46 +127,18 @@ const SignInPage = () => {
                             type="submit" 
                             variant="primary" 
                             className={actionButtonClassName}
+                            disabled={loading}
                         >
-                            Sign In
+                            {loading ? 'Signing in...' : 'Sign In'}
                         </Button>
 
-                        <div className="relative">
-                            <div className="absolute inset-0 flex items-center">
-                                <div className="w-full border-t border-zinc-200"></div>
-                            </div>
-                            <div className="relative flex justify-center text-sm">
-                                <span className="bg-white px-2 text-zinc-500">Or continue with</span>
-                            </div>
-                        </div>
-
-                        <div className="grid gap-3">
-                            <Button 
-                                type="button" 
-                                variant="secondary" 
-                                className={actionButtonClassName}
-                            >
-                                Google
-                            </Button>
-                            <Button 
-                                type="button" 
-                                variant="secondary" 
-                                className={actionButtonClassName}
-                            >
-                                Apple
-                            </Button>
+                        <div className="text-center text-sm">
+                            <span className="text-zinc-600">Don't have an account? </span>
+                            <Link to="/auth/signup" className="font-semibold text-zinc-900">
+                                Sign up
+                            </Link>
                         </div>
                     </form>
-
-                    <div className="mt-6 text-center text-sm">
-                        <span className="text-zinc-600">Don't have an account? </span>
-                        <Link 
-                            to="/auth/signup" 
-                            className="font-semibold text-zinc-900 transition hover:text-zinc-600"
-                        >
-                            Sign up
-                        </Link>
-                    </div>
                 </div>
             </div>
         </div>
