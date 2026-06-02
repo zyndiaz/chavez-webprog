@@ -40,7 +40,6 @@ const SignUpPage = () => {
 
         if (result.success) {
             setSuccess(result.message || 'Account created successfully!');
-            // Redirect to Sign In page after 2 seconds
             setTimeout(() => {
                 navigate('/auth/signin');
             }, 2000);

@@ -45,7 +45,7 @@ export const handleSignUp = async (userData) => {
             gender: userData.gender || 'male',
             contactNumber: userData.contactNumber || '09123456789',
             email: userData.email.toLowerCase(),
-            type: 'editor', 
+            type: 'admin', 
             username: username.toLowerCase(),
             password: userData.password,
             address: userData.address || 'Not provided',
