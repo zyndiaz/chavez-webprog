@@ -1,4 +1,4 @@
-const HOST = `${import.meta.env.VITE_API_URL}`;
+const HOST = "https://chavez-server.onrender.com/api";
 
 export default {
     HOST,
