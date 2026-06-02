@@ -9,10 +9,14 @@ const app = express();
 connectDB();
 
 const corsOptions = {
-    origin: "*",
+    origin: [
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "https://chavez-client.vercel.app" 
+    ],
     credentials: true,
     allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
-    methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE"],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     optionsSuccessStatus: 204,
 };
 app.use(cors(corsOptions));
