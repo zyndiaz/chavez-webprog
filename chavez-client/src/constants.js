@@ -1,4 +1,4 @@
-const HOST = "https://chavez-server.onrender.com/api";  
+const HOST = "https://chavez-server.vercel.app/api";  
 
 export default {
     HOST,
