@@ -1,0 +1,28 @@
+{
+    "version": 2,
+    "functions": {
+        "api/users.js": {
+            "maxDuration": 10
+        }
+    },
+    "routes": [
+        {
+            "src": "/api/(.*)",
+            "dest": "/api/users.js"
+        },
+        {
+            "src": "/api/health",
+            "dest": "/api/users.js"
+        },
+        {
+            "src": "/(.*)",
+            "dest": "/api/users.js"
+        }
+    ],
+    "env": {
+        "MONGO_URI": "@mongodb_uri",
+        "JWT_SECRET": "@jwt_secret",
+        "FRONTEND_URL": "@frontend_url",
+        "NODE_ENV": "production"
+    }
+}
